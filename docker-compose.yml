@@ -1,0 +1,53 @@
+
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    healthcheck:
+        test: ["CMD", "rabbitmq-diagnostics", "ping"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+    ports:
+        - "5672:5672"
+        - "15672:15672"
+   
+
+  newtask:
+    build:
+      context: .
+      dockerfile: NewTask/Dockerfile
+    depends_on:
+        rabbitmq:
+            condition: service_healthy
+    environment:
+        - RABBITMQ_HOST=rabbitmq
+        - RABBITMQ_PORT=5672
+        - RABBITMQ_USER=guest
+        - RABBITMQ_PASS=guest
+        
+  worker1:
+    build:
+        context: .
+        dockerfile: Worker/Dockerfile
+    depends_on: 
+        rabbitmq:
+            condition: service_healthy
+    environment:
+        - RABBITMQ_HOST=rabbitmq
+        - RABBITMQ_PORT=5672
+        - RABBITMQ_USER=guest
+        - RABBITMQ_PASS=guest 
+  
+  worker2:
+    build:
+         context: .
+         dockerfile: Worker/Dockerfile
+    depends_on:
+        rabbitmq:
+            condition: service_healthy
+    environment:
+        - RABBITMQ_HOST=rabbitmq
+        - RABBITMQ_PORT=5672
+        - RABBITMQ_USER=guest
+        - RABBITMQ_PASS=guest
